@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Where Do Vegetarians Get Protein? A Density &amp; Cost Explorer</title>
-<meta name="description" content="An interactive guide to vegetarian protein sources — soy, legumes, nuts, dairy, eggs, and protein powders — compared by protein density and cost per gram of protein.">
+<title>The Vegetarian Protein Landscape</title>
+<meta name="description" content="An interactive map of vegetarian protein sources — soy, legumes, nuts, dairy, eggs, and protein powders — compared by protein density and cost per gram of protein.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='22' r='4' fill='%232a78d6'/%3E%3Ccircle cx='17' cy='14' r='4' fill='%23eb6834'/%3E%3Ccircle cx='25' cy='8' r='4' fill='%231baf7a'/%3E%3C/svg%3E">
 <style>
 /* ------------------------------------------------------------------ tokens --
@@ -197,14 +197,13 @@ footer strong { color: var(--text-secondary); }
 <div class="wrap">
 
 <header>
-  <h1>Where Do Vegetarians Get Protein?</h1>
+  <h1>The Vegetarian Protein Landscape</h1>
   <p class="sub">
-    If you don't eat meat, poultry, or fish, it's easy to assume protein is scarce.
-    It isn't — this chart plots <strong><span id="food-count"></span> vegetarian foods</strong>,
-    from tofu and lentils to Greek yogurt, eggs, nuts, and protein powders, so you can see the
-    variety at a glance. Every food is normalized per calorie: further right means more protein for the
-    same calories, and lower means cheaper protein per gram — the bottom-right corner is
-    where you want to shop. Hover or tap a dot for full nutrition details, click a legend
+    This chart maps <strong><span id="food-count"></span> vegetarian protein sources</strong> —
+    soy, legumes, nuts, dairy, eggs, and protein powders — so you can see the full range of
+    options at a glance. Every food is normalized per calorie: further right means more protein
+    for the same calories, and lower means cheaper protein per gram — the bottom-right corner
+    is where you want to shop. Hover or tap a dot for full nutrition details, click a legend
     chip below to filter by category, or search for a food by name. The same data is also in
     a sortable table further down the page.
   </p>
@@ -302,7 +301,6 @@ footer strong { color: var(--text-secondary); }
       group: CATEGORIES[f.category].group,
       proteinPer100kcal: n.protein / n.kcal * 100,
       dollarsPerGramProtein: dollarsPerGram / (n.protein / 100),
-      dollarsPer100kcal: dollarsPerGram * (100 / n.kcal) * 100,
       dollarsPerGram: dollarsPerGram
     });
   });
@@ -668,7 +666,6 @@ footer strong { color: var(--text-secondary); }
     { key: "category",              label: "Category",        get: function (r) { return CATEGORIES[r.food.category].label; } },
     { key: "proteinPer100kcal",     label: "Protein /100 kcal", get: function (r) { return r.proteinPer100kcal.toFixed(1) + " g"; } },
     { key: "dollarsPerGramProtein", label: "$ / g protein",   get: function (r) { return "$" + r.dollarsPerGramProtein.toFixed(3); } },
-    { key: "dollarsPer100kcal",     label: "$ / 100 kcal",    get: function (r) { return "$" + r.dollarsPer100kcal.toFixed(3); } },
     { key: "kcal",                  label: "kcal /100 g",     get: function (r) { return String(r.food.per100g.kcal); } },
     { key: "protein",               label: "Protein /100 g",  get: function (r) { return r.food.per100g.protein.toFixed(1) + " g"; } },
     { key: "fat",                   label: "Fat",             get: function (r) { return r.food.per100g.fat.toFixed(1) + " g"; } },
@@ -685,8 +682,7 @@ footer strong { color: var(--text-secondary); }
       case "category": return CATEGORIES[r.food.category].label.toLowerCase();
       case "priceBasis": return r.dollarsPerGram;
       case "proteinPer100kcal":
-      case "dollarsPerGramProtein":
-      case "dollarsPer100kcal": return r[key];
+      case "dollarsPerGramProtein": return r[key];
       default: return r.food.per100g[key];
     }
   }
