@@ -52,6 +52,24 @@ what you paid. `$/g` and `$/g protein` are derived at render time. Use `unitNote
 whenever `grams` isn't simply the label weight — drained weight for canned beans,
 volume-to-mass for milk, dry-to-cooked yield for lentils.
 
+### `data/regions.js` — regional prices
+
+A **Prices from** selector on the page switches the whole chart and table between
+the US average and a growing list of metros (Denver, NYC, San Francisco today).
+Only `data/prices.js` is hand-priced, as the US-average baseline; every region is
+*derived* from it at render time — a per-category multiplier (researched from BLS
+regional CPI, Numbeo, and cost-of-living groceries indices) scales the baseline
+package price, with a few item-level overrides where a better-grounded number was
+available (e.g. reported dozen-egg prices, or a food whose maker is headquartered
+in-region).
+
+Switching regions doesn't rebuild the chart — it moves each point's existing dot to
+its new price, so you can watch cost-per-gram shift by market.
+
+To add a metro: add an entry to `REGIONS`, a full 8-category table to
+`REGION_CATEGORY_MULTIPLIER`, and optionally a few `REGION_ITEM_OVERRIDES`. See the
+comment at the top of the file for the exact shape.
+
 ### `data/foods.js` — nutrition
 
 Macros per 100 g, since that is what both labels and package prices reduce to. To add

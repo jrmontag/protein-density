@@ -103,6 +103,15 @@ input[type="search"] {
 }
 input[type="search"]::placeholder { color: var(--text-muted); }
 
+#region-select {
+  appearance: none; font: inherit; font-size: 13px; font-weight: 600;
+  padding: 6px 30px 6px 10px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface-1) url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22%3E%3Cpath fill=%22%23898781%22 d=%22M5.5 7.5l4.5 5 4.5-5z%22/%3E%3C/svg%3E') no-repeat right 8px center;
+  background-size: 16px; color: var(--text-primary); cursor: pointer;
+}
+.region-note { color: var(--text-muted); font-size: 12px; margin: 6px 0 0; }
+
 /* -------------------------------------------------------- legend and chips */
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 10px; }
 .legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-secondary); }
@@ -138,6 +147,11 @@ input[type="search"]::placeholder { color: var(--text-muted); }
 .dot:focus-visible + .dot-focus, .dot-focus.on { opacity: 1; }
 .dot-focus { opacity: 0; stroke: var(--text-primary); stroke-width: 2; fill: none; }
 .point-label { fill: var(--text-secondary); font-size: 11px; paint-order: stroke; stroke: var(--surface-1); stroke-width: 3px; }
+.dot { transition: cx 420ms cubic-bezier(0.4,0,0.2,1), cy 420ms cubic-bezier(0.4,0,0.2,1), opacity 220ms ease; }
+.point-label { transition: x 420ms cubic-bezier(0.4,0,0.2,1), y 420ms cubic-bezier(0.4,0,0.2,1); }
+@media (prefers-reduced-motion: reduce) {
+  .dot, .point-label { transition: none; }
+}
 
 /* ----------------------------------------------------------------- tooltip */
 .tooltip {
@@ -204,11 +218,16 @@ footer strong { color: var(--text-secondary); }
     options at a glance. Every food is normalized per calorie: further right means more protein
     for the same calories, and lower means cheaper protein per gram — the bottom-right corner
     is where you want to shop. Hover or tap a dot for full nutrition details, click a legend
-    chip below to filter by category, or search for a food by name.
+    chip below to filter by category, search for a food by name, or switch the price region
+    below to see costs shift by market.
   </p>
 </header>
 
 <div class="controls">
+  <div class="control-group">
+    <label class="control-label" for="region-select">Prices from</label>
+    <select id="region-select"></select>
+  </div>
   <div class="control-group">
     <label class="visually-hidden" for="search">Highlight a food by name</label>
     <input type="search" id="search" placeholder="Highlight a food…" autocomplete="off">
@@ -218,6 +237,7 @@ footer strong { color: var(--text-secondary); }
     <div class="examples" id="examples"></div>
   </div>
 </div>
+<p class="region-note" id="region-note"></p>
 
 <div class="legend" id="legend"></div>
 <div class="chips" id="chips" role="group" aria-label="Filter by food category"></div>
@@ -250,10 +270,14 @@ footer strong { color: var(--text-secondary); }
 
 <footer>
   <p>
-    <strong>Prices are estimates, not observed prices.</strong> They are plausible US
-    supermarket figures seeded so the chart works out of the box, dated
-    <span id="price-range"></span>. Grocery prices vary by region, chain, and week —
-    edit <code>data/prices.js</code> with numbers off your own receipts and this becomes
+    <strong>Prices are estimates, not observed prices.</strong> The US average is a
+    plausible blend of metro and rural supermarket figures seeded so the chart works
+    out of the box, dated <span id="price-range"></span>. Denver, NYC, and San
+    Francisco are derived from that baseline using regional grocery cost
+    differentials researched from BLS regional CPI, Numbeo, and cost-of-living
+    groceries indices, applied per food category — not priced item by item. Grocery
+    prices vary by region, chain, and week regardless — edit
+    <code>data/prices.js</code> with numbers off your own receipts and this becomes
     genuinely yours.
   </p>
   <p>
@@ -266,12 +290,16 @@ footer strong { color: var(--text-secondary); }
 
 <script src="data/foods.js"></script>
 <script src="data/prices.js"></script>
+<script src="data/regions.js"></script>
 <script>
 (function () {
   "use strict";
 
   var FOODS = window.FOODS, PRICES = window.PRICES;
   var CATEGORIES = window.CATEGORIES, GROUPS = window.GROUPS;
+  var REGIONS = window.REGIONS;
+  var REGION_CATEGORY_MULTIPLIER = window.REGION_CATEGORY_MULTIPLIER;
+  var REGION_ITEM_OVERRIDES = window.REGION_ITEM_OVERRIDES;
 
   var GROUP_VAR = {
     plant: "--series-plant",
@@ -283,26 +311,68 @@ footer strong { color: var(--text-secondary); }
   }
 
   // ------------------------------------------------------------ derivation --
-  // Every metric the chart plots is computed here from the two data files, so
-  // the data files never store anything that can drift out of sync.
-  var priceById = {};
-  PRICES.forEach(function (p) { priceById[p.id] = p; });
+  // Every metric the chart plots is computed here from the data files, so the
+  // data files never store anything that can drift out of sync.
+  //
+  // Regions are layered on top of the US-average baseline in `prices.js`: for
+  // every food, a per-category multiplier (or an item-level override) scales
+  // the baseline package price into a regional one. See `data/regions.js` for
+  // the research and reasoning behind the numbers.
+  function regionPriceFor(basePrice, region) {
+    if (region.key === "us-avg") return basePrice;
+    var overrides = (REGION_ITEM_OVERRIDES[region.key] || {})[basePrice.id];
+    var price;
+    if (overrides && typeof overrides.price === "number") {
+      price = overrides.price;
+    } else {
+      var category = FOODS_BY_ID[basePrice.id].category;
+      var mult = (overrides && overrides.multiplier) ||
+                 REGION_CATEGORY_MULTIPLIER[region.key][category];
+      price = Math.round(basePrice.package.price * mult / 0.05) * 0.05;
+      price = Math.round(price * 100) / 100;
+    }
+    var unitNote = basePrice.unitNote + (overrides && overrides.note ? (basePrice.unitNote ? " " : "") + overrides.note : "");
+    return {
+      id: basePrice.id,
+      store: region.store,
+      date: region.date,
+      package: { grams: basePrice.package.grams, price: price },
+      unitNote: unitNote
+    };
+  }
 
-  var rows = [];
-  FOODS.forEach(function (f) {
-    var p = priceById[f.id];
-    if (!p) return;
-    var n = f.per100g;
-    var dollarsPerGram = p.package.price / p.package.grams;
-    rows.push({
-      food: f,
-      price: p,
-      group: CATEGORIES[f.category].group,
-      proteinPer100kcal: n.protein / n.kcal * 100,
-      dollarsPerGramProtein: dollarsPerGram / (n.protein / 100),
-      dollarsPerGram: dollarsPerGram
+  var FOODS_BY_ID = {};
+  FOODS.forEach(function (f) { FOODS_BY_ID[f.id] = f; });
+
+  var basePriceById = {};
+  PRICES.forEach(function (p) { basePriceById[p.id] = p; });
+
+  function buildRows(region) {
+    var out = [];
+    FOODS.forEach(function (f) {
+      var base = basePriceById[f.id];
+      if (!base) return;
+      var p = regionPriceFor(base, region);
+      var n = f.per100g;
+      var dollarsPerGram = p.package.price / p.package.grams;
+      out.push({
+        food: f,
+        price: p,
+        group: CATEGORIES[f.category].group,
+        proteinPer100kcal: n.protein / n.kcal * 100,
+        dollarsPerGramProtein: dollarsPerGram / (n.protein / 100),
+        dollarsPerGram: dollarsPerGram
+      });
     });
-  });
+    return out;
+  }
+
+  // All regions' rows are precomputed once — the set of foods and their
+  // nutrition never changes, so only the price-derived fields differ.
+  var ROWS_BY_REGION = {};
+  REGIONS.forEach(function (region) { ROWS_BY_REGION[region.key] = buildRows(region); });
+
+  var rows = ROWS_BY_REGION["us-avg"];
 
   // ------------------------------------------------------------ validation --
   // Runs on load and reports to the console, so a bad data edit surfaces
@@ -313,7 +383,7 @@ footer strong { color: var(--text-secondary); }
     FOODS.forEach(function (f) {
       if (seen[f.id]) problems.push("duplicate food id: " + f.id);
       seen[f.id] = true;
-      if (!priceById[f.id]) problems.push("food has no price entry, omitted from chart: " + f.id);
+      if (!basePriceById[f.id]) problems.push("food has no price entry, omitted from chart: " + f.id);
       if (!CATEGORIES[f.category]) problems.push("unknown category '" + f.category + "' on " + f.id);
       var n = f.per100g;
       if (n.protein > 100) problems.push("protein exceeds 100 g per 100 g: " + f.id);
@@ -345,7 +415,8 @@ footer strong { color: var(--text-secondary); }
     hidden: {},
     query: "",
     sortKey: "dollarsPerGramProtein",
-    sortDir: 1
+    sortDir: 1,
+    region: "us-avg"
   };
 
   // Labeled on load without any search or hover, so a first-time visitor sees
@@ -408,6 +479,31 @@ footer strong { color: var(--text-secondary); }
     chipsEl.appendChild(b);
   });
 
+  // ---------------------------------------------------------- region select --
+  var regionSelect = document.getElementById("region-select");
+  var regionNoteEl = document.getElementById("region-note");
+  var REGIONS_BY_KEY = {};
+  REGIONS.forEach(function (region) {
+    REGIONS_BY_KEY[region.key] = region;
+    var opt = document.createElement("option");
+    opt.value = region.key;
+    opt.textContent = region.label;
+    regionSelect.appendChild(opt);
+  });
+  regionSelect.value = state.region;
+
+  function updateRegionNote() {
+    regionNoteEl.textContent = REGIONS_BY_KEY[state.region].methodNote;
+  }
+
+  regionSelect.addEventListener("change", function (e) {
+    state.region = e.target.value;
+    rows = ROWS_BY_REGION[state.region];
+    updateRegionNote();
+    updatePriceRange();
+    render();
+  });
+
   // -------------------------------------------------------------- controls --
   var searchInput = document.getElementById("search");
   searchInput.addEventListener("input", function (e) {
@@ -443,6 +539,19 @@ footer strong { color: var(--text-secondary); }
     for (var k in attrs) e.setAttribute(k, attrs[k]);
     return e;
   }
+
+  // Grid/axis is cheap to fully rebuild every render. Points are not: they're
+  // kept as persistent, id-keyed elements (an enter/update/exit join) so that
+  // switching regions updates existing circles' cx/cy in place instead of
+  // replacing them — that's what lets the CSS transition on cx/cy animate a
+  // point sliding to its new price, instead of snapping a fresh dot into
+  // place with no point to animate from.
+  var gridAxisG = el("g", {});
+  var pointsG = el("g", {});
+  svg.appendChild(gridAxisG);
+  svg.appendChild(pointsG);
+  var pointEls = {};   // food id -> { el, point: {row, cx, cy} }
+  var labelEls = {};   // food id -> { el }
   function logTicks(min, max) {
     var ticks = [], mults = [1, 2, 5];
     var e = Math.floor(Math.log10(min));
@@ -456,11 +565,20 @@ footer strong { color: var(--text-secondary); }
   }
 
   // -------------------------------------------------------------- rendering --
+  function clearPoints() {
+    Object.keys(pointEls).forEach(function (id) { pointsG.removeChild(pointEls[id].el); delete pointEls[id]; });
+    Object.keys(labelEls).forEach(function (id) { pointsG.removeChild(labelEls[id].el); delete labelEls[id]; });
+  }
+
   function renderChart() {
     var data = visibleRows();
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
     hideTooltip();
-    if (!data.length) { geom = null; return; }
+    if (!data.length) {
+      while (gridAxisG.firstChild) gridAxisG.removeChild(gridAxisG.firstChild);
+      clearPoints();
+      geom = null;
+      return;
+    }
 
     var width = svg.parentNode.clientWidth - 16;
     var height = Math.max(380, Math.min(600, Math.round(width * 0.62)));
@@ -484,58 +602,81 @@ footer strong { color: var(--text-secondary); }
     }
 
     // --- gridlines and axes -------------------------------------------------
-    var g = el("g", {});
-    svg.appendChild(g);
+    // Rebuilt from scratch every render — the tick set itself changes with
+    // the price range, so there's nothing stable to animate here.
+    while (gridAxisG.firstChild) gridAxisG.removeChild(gridAxisG.firstChild);
 
     var xStep = xMax > 18 ? 5 : xMax > 9 ? 2 : 1;
     for (var xv = 0; xv <= xMax; xv += xStep) {
-      g.appendChild(el("line", { class: "grid", x1: sx(xv), x2: sx(xv), y1: M.top, y2: M.top + plotH }));
+      gridAxisG.appendChild(el("line", { class: "grid", x1: sx(xv), x2: sx(xv), y1: M.top, y2: M.top + plotH }));
       var xt = el("text", { class: "axis-text tabular", x: sx(xv), y: M.top + plotH + 18, "text-anchor": "middle" });
       xt.textContent = String(xv);
-      g.appendChild(xt);
+      gridAxisG.appendChild(xt);
     }
     logTicks(yMin, yMax).forEach(function (yv) {
-      g.appendChild(el("line", { class: "grid", x1: M.left, x2: M.left + plotW, y1: sy(yv), y2: sy(yv) }));
+      gridAxisG.appendChild(el("line", { class: "grid", x1: M.left, x2: M.left + plotW, y1: sy(yv), y2: sy(yv) }));
       var yt = el("text", { class: "axis-text tabular", x: M.left - 10, y: sy(yv) + 4, "text-anchor": "end" });
       yt.textContent = Y.fmt(yv);
-      g.appendChild(yt);
+      gridAxisG.appendChild(yt);
     });
 
     var xTitle = el("text", { class: "axis-title", x: M.left + plotW / 2, y: height - 12, "text-anchor": "middle" });
     xTitle.textContent = "Protein density  (g protein per 100 kcal)  →";
-    g.appendChild(xTitle);
+    gridAxisG.appendChild(xTitle);
 
     var yTitle = el("text", {
       class: "axis-title", "text-anchor": "middle",
       transform: "translate(16," + (M.top + plotH / 2) + ") rotate(-90)"
     });
     yTitle.textContent = Y.title;
-    g.appendChild(yTitle);
+    gridAxisG.appendChild(yTitle);
 
-    // --- points -------------------------------------------------------------
-    var pointsG = el("g", {});
-    svg.appendChild(pointsG);
+    // --- points: enter / update / exit --------------------------------------
     var placed = [];
+    var currentIds = {};
 
     data.forEach(function (r) {
+      var id = r.food.id;
+      currentIds[id] = true;
       var cx = sx(r.proteinPer100kcal), cy = sy(r[Y.key]);
       placed.push({ row: r, cx: cx, cy: cy });
 
       var dim = state.query.length > 0 && !matchesQuery(r);
-      var c = el("circle", {
-        class: "dot dot-ring",
-        cx: cx, cy: cy, r: 5,
-        fill: "var(" + GROUP_VAR[r.group] + ")",
-        opacity: dim ? 0.22 : 0.95,
-        tabindex: "0",
-        role: "img"
-      });
-      c.setAttribute("aria-label",
-        r.food.name + ": " + r.proteinPer100kcal.toFixed(1) +
-        " grams protein per 100 calories, " + Y.fmtLong(r[Y.key]));
-      c.addEventListener("focus", function () { showTooltip(r, cx, cy); });
-      c.addEventListener("blur", hideTooltip);
-      pointsG.appendChild(c);
+      var opacity = dim ? 0.22 : 0.95;
+      var ariaLabel = r.food.name + ": " + r.proteinPer100kcal.toFixed(1) +
+        " grams protein per 100 calories, " + Y.fmtLong(r[Y.key]);
+
+      var entry = pointEls[id];
+      if (!entry) {
+        var c = el("circle", {
+          class: "dot dot-ring",
+          cx: cx, cy: cy, r: 5,
+          fill: "var(" + GROUP_VAR[r.group] + ")",
+          opacity: opacity,
+          tabindex: "0",
+          role: "img"
+        });
+        c.setAttribute("aria-label", ariaLabel);
+        entry = { el: c, point: { row: r, cx: cx, cy: cy } };
+        // Closure captures `entry`, not cx/cy/r, so focus always reads the
+        // point's current position — including after a later region switch
+        // moves it without re-attaching this listener.
+        c.addEventListener("focus", function () { showTooltip(entry.point.row, entry.point.cx, entry.point.cy); });
+        c.addEventListener("blur", hideTooltip);
+        pointEls[id] = entry;
+        pointsG.appendChild(c);
+      } else {
+        entry.point.row = r; entry.point.cx = cx; entry.point.cy = cy;
+        entry.el.setAttribute("cx", cx);
+        entry.el.setAttribute("cy", cy);
+        entry.el.setAttribute("opacity", opacity);
+        entry.el.setAttribute("fill", "var(" + GROUP_VAR[r.group] + ")");
+        entry.el.setAttribute("aria-label", ariaLabel);
+      }
+    });
+
+    Object.keys(pointEls).forEach(function (id) {
+      if (!currentIds[id]) { pointsG.removeChild(pointEls[id].el); delete pointEls[id]; }
     });
 
     geom = { placed: placed, width: width, height: height };
@@ -547,17 +688,33 @@ footer strong { color: var(--text-secondary); }
     // there the tooltip carries them instead.
     var notable = {};
     if (width >= 480) {
-      for (var id in DEFAULT_LABEL_IDS) notable[id] = true;
+      for (var id2 in DEFAULT_LABEL_IDS) notable[id2] = true;
     }
 
+    var currentLabelIds = {};
     placed.forEach(function (p) {
-      var show = notable[p.row.food.id] || matchesQuery(p.row);
+      var id = p.row.food.id;
+      var show = notable[id] || matchesQuery(p.row);
       if (!show) return;
+      currentLabelIds[id] = true;
       var anchor = p.cx > M.left + plotW * 0.72 ? "end" : "start";
       var dx = anchor === "end" ? -9 : 9;
-      var t = el("text", { class: "point-label", x: p.cx + dx, y: p.cy + 4, "text-anchor": anchor });
-      t.textContent = p.row.food.name;
-      pointsG.appendChild(t);
+
+      var entry = labelEls[id];
+      if (!entry) {
+        var t = el("text", { class: "point-label", x: p.cx + dx, y: p.cy + 4, "text-anchor": anchor });
+        t.textContent = p.row.food.name;
+        labelEls[id] = { el: t };
+        pointsG.appendChild(t);
+      } else {
+        entry.el.setAttribute("x", p.cx + dx);
+        entry.el.setAttribute("y", p.cy + 4);
+        entry.el.setAttribute("text-anchor", anchor);
+      }
+    });
+
+    Object.keys(labelEls).forEach(function (id) {
+      if (!currentLabelIds[id]) { pointsG.removeChild(labelEls[id].el); delete labelEls[id]; }
     });
   }
 
@@ -743,11 +900,11 @@ footer strong { color: var(--text-secondary); }
 
   document.getElementById("food-count").textContent = rows.length;
 
-  (function priceRange() {
-    var dates = PRICES.map(function (p) { return p.date; }).sort();
+  function updatePriceRange() {
+    var dates = rows.map(function (r) { return r.price.date; }).sort();
     var lo = dates[0], hi = dates[dates.length - 1];
     document.getElementById("price-range").textContent = lo === hi ? lo : lo + " to " + hi;
-  })();
+  }
 
   var resizeTimer = null;
   window.addEventListener("resize", function () {
@@ -755,6 +912,8 @@ footer strong { color: var(--text-secondary); }
     resizeTimer = setTimeout(renderChart, 120);
   });
 
+  updateRegionNote();
+  updatePriceRange();
   render();
 })();
 </script>
