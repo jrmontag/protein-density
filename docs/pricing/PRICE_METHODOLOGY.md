@@ -1,9 +1,11 @@
 # Price data methodology (2026-07-26 refresh)
 
 This replaces the seeded placeholder prices in `prices.js` with estimates
-built from real, current sources instead of invented numbers. It covers all
-67 line items across all 8 categories (soy, legume, dairy, egg, nut-seed,
-grain, supplement, packaged).
+built from real, current sources instead of invented numbers. Claude did the
+sourcing — searching and cross-referencing government price series, retailer
+listings, and market research, then aggregating the results into a price and
+confidence rating per item. It covers all 67 line items across all 8
+categories (soy, legume, dairy, egg, nut-seed, grain, supplement, packaged).
 
 ## Sources, by tier
 
@@ -40,37 +42,14 @@ High / Medium / Low and gives a one-line source note per item:
 - **High** (37 items): anchored to a live BLS series or a directly-observed
   2026 retail price for this exact or near-exact package size.
 - **Medium** (27 items): a solid category anchor exists (a dominant brand's
-  typical price range) but I did not pull today's exact listing for this
-  specific pack size.
+  typical price range) but today's exact listing for this specific pack
+  size wasn't pulled.
 - **Low** (3 items): thin market — tahini, soy curls, and a couple of other
   specialty items where pricing is inferred mostly from general category
   knowledge rather than a source pulled this session.
 
-## What changed most from the original seed data
-
-- **Eggs dropped from $3.99 → $2.99/doz.** The seed data's price looks like
-  it was set during (or shortly after) the 2025 avian-flu price spike; BLS
-  shows large-grade-A eggs at $2.14–2.19/doz as of May–June 2026, down
-  43–52% YoY. I set the final number a bit above the bare commodity figure
-  to reflect that a real chunk of shoppers buy cage-free/brown eggs, which
-  still run $3.50+.
-- **Cheese/dairy tubs mostly came down** (mozzarella $3.99→$2.99, ricotta
-  $4.29→$3.49, string cheese $5.49→$4.29, parmesan $7.99→$5.49) — the
-  original numbers were closer to name-brand-only pricing; blending in the
-  store-brand option (which a large share of shoppers actually buy) pulls
-  the average down.
-- **High-protein bread went up** ($5.99→$6.99) — Dave's Killer Bread, a
-  realistic anchor for this category, runs to about $7.60 once scaled to
-  the 27 oz package size already used in the dataset.
-- Legumes, tofu, protein powders, and protein bars were already close to
-  observed real prices and needed only small adjustments.
-
 ## Caveats
 
-- These are still estimates, not receipts — the file's own header comment
-  says as much, and that's still true here. What's changed is that every
-  number now traces to a cited source or a clearly labeled inference, not
-  an unlabeled guess.
+- These are still estimates, not receipts.
 - Prices are volatile in a few categories right now (eggs, beef, coffee,
-  cheddar) per the July 2026 USDA outlook — treat this as a mid-2026
-  snapshot, not a permanently stable baseline.
+  cheddar) per the July 2026 USDA outlook.
