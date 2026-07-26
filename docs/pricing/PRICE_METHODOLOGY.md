@@ -1,10 +1,8 @@
 # Price data methodology (2026-07-26 refresh)
 
-This replaces the seeded placeholder prices in `prices.js` with estimates
-built from real, current sources instead of invented numbers. This data was
-compiled by searching and cross-referencing government price series, retailer
-listings, and market research, then aggregating the results into a price and
-confidence rating per item. It covers all 67 line items across all 8
+This data was compiled by searching and cross-referencing government price series, 
+retailer listings, and market research, then aggregating the results into a price 
+and confidence rating per item. It covers all 67 line items across all 8
 categories (soy, legume, dairy, egg, nut-seed, grain, supplement, packaged).
 
 ## Sources, by tier
