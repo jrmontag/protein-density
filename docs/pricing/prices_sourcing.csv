@@ -19,14 +19,14 @@ chickpea-pasta,legume,227,3.49,Medium,"Category estimate, Banza (dominant brand)
 red-lentil-pasta,legume,227,3.29,Medium,"Category estimate, Banza/Tolerant red lentil pasta 8oz box"
 milk-skim,dairy,3785,4.09,High,"BLS APU0000709112 whole-milk anchor $4.22-4.32/gal, skim priced slightly below whole"
 milk-2pct,dairy,3785,4.19,High,"BLS whole-milk anchor, 2% priced between skim and whole"
-milk-whole,dairy,3785,4.29,High,BLS APU0000709112: $4.22/gal (May26) -> $4.32/gal (Jun26); +rural/blend adj.
+milk-whole,dairy,3785,4.29,High,BLS APU0000709112: $4.22/gal (May26) -> $4.32/gal (Jun26)
 greek-yogurt-0,dairy,907,4.59,High,"Walmart 32oz tubs: Great Value $2.94, Chobani $5.37, Oikos $6.27 (blended)"
 greek-yogurt-2,dairy,907,4.69,Medium,Interpolated between 0% and whole-milk tiers; Chobani 2% protein line $6.77
 greek-yogurt-5,dairy,907,4.79,High,"Walmart 32oz whole-milk tubs: bettergoods $3.53, Stonyfield Organic $5.17"
 skyr,dairy,680,6.99,High,Target: Siggi's plain 24oz $6.99 (category-dominant brand)
 cottage-cheese-2,dairy,680,3.59,High,"Walmart 24oz tubs: Great Value $2.87, Daisy $4.36 (blended)"
 cottage-cheese-1,dairy,680,3.49,High,"Walmart 24oz tubs: Great Value $2.87, Daisy $4.36 (blended)"
-kefir,dairy,946,3.79,High,Walmart: Lifeway (category-dominant brand) 32oz $3.66 + rural/blend adj.
+kefir,dairy,946,3.79,High,Walmart: Lifeway (category-dominant brand) 32oz $3.66
 cheddar,dairy,227,3.79,High,"BLS $5.96/lb (all-forms avg) blended w/ block-format brands (Cabot/Tillamook ~$4-5, GV cubed $1.97-2.37)"
 mozzarella,dairy,227,2.99,High,Walmart: Great Value block/shredded $1.87-1.97 blended w/ Galbani/BelGioioso $3.49-4.46
 parmesan,dairy,170,5.49,High,"Walmart: BelGioioso wedge $5.42/8oz scaled to 6oz, blended w/ cheaper grated options"

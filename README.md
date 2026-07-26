@@ -39,15 +39,15 @@ Two files, both plain JavaScript that assign a global. Neither requires touching
 ### `data/prices.js` — the file worth maintaining
 
 The seeded prices are **estimates**, not observed prices — blended from BLS/USDA price
-series, direct retailer listings, and category-level estimates so the chart works out
-of the box. Replacing them with numbers off your own receipts is the highest-value
-change you can make. See [`docs/pricing/PRICE_METHODOLOGY.md`](docs/pricing/PRICE_METHODOLOGY.md)
-for how the current numbers were sourced, and
+series, direct retailer listings, and category-level estimates. Replacing them with
+numbers off your own receipts is the highest-value change you can make. See
+[`docs/pricing/PRICE_METHODOLOGY.md`](docs/pricing/PRICE_METHODOLOGY.md) for how the
+current numbers were sourced, and
 [`docs/pricing/prices_sourcing.csv`](docs/pricing/prices_sourcing.csv) for a per-item
 confidence rating and source note.
 
 ```js
-{ id: "tofu-firm", store: "Trader Joe's", date: "2026-08-02",
+{ id: "tofu-firm", date: "2026-08-02",
   package: { grams: 396, price: 2.49 }, unitNote: "" }
 ```
 

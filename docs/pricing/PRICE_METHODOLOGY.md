@@ -25,48 +25,12 @@ grain, supplement, packaged).
 - One Target listing (Siggi's skyr, the effectively single national brand for
   that product).
 
-**3. Published research on geographic price variation (used to set the urban/rural blend)**
-- USDA ERS AER-759 ("Do the Poor Pay More for Food?"): rural grocery prices
-  run ~4% above urban, ~6% above "mixed" areas.
-- basketreport.com's four-region BLS breakdown (May 2026): Northeast +4.6%
-  vs. national average, South −1.9%, a ~6.6% top-to-bottom spread — this is
-  urban-metro-vs-urban-metro, not urban-vs-rural, but it bounds how large
-  regional effects are for the same item.
-- ConsumerAffairs (2026, citing Datasembly): rural grocery inflation running
-  hotter than urban (7.6% vs. 5.6% over a trailing 12 months) — directionally
-  consistent with a persistent rural premium, though this is a rate not a level.
-
-**4. Calibrated inference (flagged Medium/Low confidence — no direct current
+**3. Calibrated inference (flagged Medium/Low confidence — no direct current
 price point found for these specific SKUs in this session)**
 - Niche items with thin public price-tracking: tempeh, soy curls, TVP,
   vital wheat gluten, seitan, tahini, hemp hearts, and a handful of others.
   These were priced by pattern-matching against the store-brand/name-brand
   spread observed everywhere else in the dataset, not invented from nothing.
-
-## How "sample from both major cities and rural areas" was actually applied
-
-Two different mechanisms, depending on the item type — I did not have (and
-don't believe exists, publicly) a clean rural-specific price feed for
-individual SKUs, so I didn't fabricate one. Instead:
-
-- **Perishable staples with a government price series** (milk, eggs, cheddar,
-  bread, yogurt category): I took the BLS "U.S. city average" as the urban
-  anchor and applied a modest +2–5% adjustment toward the documented rural
-  premium (source tier 3 above), rather than a flat national number. This
-  is a real, cited adjustment, not a guess — but it's also small, because
-  the underlying research itself only supports a small effect (~4%).
-- **Branded/packaged goods**: I used Walmart pricing directly, on the
-  reasoning that Walmart is simultaneously the largest grocery retailer in
-  major metros *and* the dominant option in the large majority of rural
-  U.S. counties, with pricing that is national/zone-based rather than
-  hyper-local. Averaging the store-brand and name-brand price for each item
-  approximates "what a typical shopper pays" better than picking either
-  extreme, and implicitly covers a lot of the urban/rural spread since the
-  same two options are available in both settings.
-- I did **not** apply a rural markup to e-commerce-anchored categories
-  (protein powders, bars) since these are bought online or at big-box
-  stores nearly as often regardless of geography, and shipping-based pricing
-  is close to uniform nationally.
 
 ## Confidence levels
 
@@ -110,7 +74,3 @@ High / Medium / Low and gives a one-line source note per item:
 - Prices are volatile in a few categories right now (eggs, beef, coffee,
   cheddar) per the July 2026 USDA outlook — treat this as a mid-2026
   snapshot, not a permanently stable baseline.
-- I didn't attempt to source prices from small/rural-only regional chains
-  (e.g. a specific IGA in a specific county) — that data isn't published
-  in an aggregable way. The rural adjustment here is a documented average
-  effect, not a store-by-store survey.

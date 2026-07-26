@@ -620,7 +620,7 @@ footer strong { color: var(--text-secondary); }
     rowsEl.appendChild(row("Sodium", Math.round(n.sodium) + " mg"));
     rowsEl.appendChild(row("Price basis",
       "$" + r.price.package.price.toFixed(2) + " / " + r.price.package.grams + " g"));
-    rowsEl.appendChild(row(r.price.store, r.price.date));
+    rowsEl.appendChild(row("Priced", r.price.date));
     tooltip.appendChild(rowsEl);
 
     if (f.note) {
