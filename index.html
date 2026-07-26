@@ -135,8 +135,6 @@ input[type="search"]::placeholder { color: var(--text-muted); }
 .axis-text.tabular { font-variant-numeric: tabular-nums; }
 .axis-title { fill: var(--text-secondary); font-size: 12px; font-weight: 600; }
 .grid { stroke: var(--gridline); stroke-width: 1; }
-.median { stroke: var(--baseline); stroke-width: 1; stroke-dasharray: 0; opacity: 0.55; }
-.median-label { fill: var(--text-muted); font-size: 10px; }
 .dot-ring { stroke: var(--surface-1); stroke-width: 2; }
 .dot:focus { outline: none; }
 .dot:focus-visible + .dot-focus, .dot-focus.on { opacity: 1; }
@@ -168,10 +166,6 @@ input[type="search"]::placeholder { color: var(--text-muted); }
 .tt-row span:first-child { color: var(--text-secondary); }
 .tt-row span:last-child { color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .tt-note { font-size: 11.5px; color: var(--text-secondary); margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); }
-.tt-badge {
-  display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
-  border: 1px solid var(--border); color: var(--text-secondary); margin-top: 7px;
-}
 
 /* ------------------------------------------------------------------- table */
 #table-view { display: none; }
@@ -214,13 +208,6 @@ footer strong { color: var(--text-secondary); }
 </header>
 
 <div class="controls">
-  <div class="control-group">
-    <span class="control-label" id="lbl-y">Cost axis</span>
-    <div class="segmented" role="group" aria-labelledby="lbl-y">
-      <button type="button" data-y="perProtein" aria-pressed="true">$ / g protein</button>
-      <button type="button" data-y="perKcal" aria-pressed="false">$ / 100 kcal</button>
-    </div>
-  </div>
   <div class="control-group">
     <span class="control-label" id="lbl-view">View</span>
     <div class="segmented" role="group" aria-labelledby="lbl-view">
@@ -271,10 +258,7 @@ footer strong { color: var(--text-secondary); }
   </p>
   <p>
     Nutrition comes from USDA FoodData Central and manufacturer labels; brand items vary.
-    Scope is lacto-ovo vegetarian. <strong>DIAAS</strong> scores protein quality — how much
-    of the protein your body can actually use. Below about 0.75 the food is limited by one
-    amino acid, so a high position on the chart overstates it. Wheat protein (seitan, vital
-    wheat gluten) is the sharpest example: superb on both axes, poor quality alone.
+    Scope is lacto-ovo vegetarian.
   </p>
 </footer>
 
@@ -359,28 +343,19 @@ footer strong { color: var(--text-secondary); }
 
   // ----------------------------------------------------------------- state --
   var state = {
-    y: "perProtein",
     view: "chart",
     hidden: {},
     query: "",
-    hoverId: null,
     sortKey: "dollarsPerGramProtein",
     sortDir: 1
   };
 
-  var Y_MODES = {
-    perProtein: {
-      key: "dollarsPerGramProtein",
-      title: "Cost  ($ per gram of protein, log scale)",
-      fmt: function (v) { return "$" + v.toFixed(3); },
-      fmtLong: function (v) { return "$" + v.toFixed(3) + " / g protein"; }
-    },
-    perKcal: {
-      key: "dollarsPer100kcal",
-      title: "Cost  ($ per 100 kcal, log scale)",
-      fmt: function (v) { return "$" + v.toFixed(2); },
-      fmtLong: function (v) { return "$" + v.toFixed(3) + " / 100 kcal"; }
-    }
+  // The single cost metric the chart plots.
+  var Y = {
+    key: "dollarsPerGramProtein",
+    title: "Cost  ($ per gram of protein, log scale)",
+    fmt: function (v) { return "$" + v.toFixed(3); },
+    fmtLong: function (v) { return "$" + v.toFixed(3) + " / g protein"; }
   };
 
   function visibleRows() {
@@ -431,15 +406,6 @@ footer strong { color: var(--text-secondary); }
   });
 
   // -------------------------------------------------------------- controls --
-  document.querySelectorAll("[data-y]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      state.y = b.dataset.y;
-      document.querySelectorAll("[data-y]").forEach(function (o) {
-        o.setAttribute("aria-pressed", o === b ? "true" : "false");
-      });
-      render();
-    });
-  });
   document.querySelectorAll("[data-view]").forEach(function (b) {
     b.addEventListener("click", function () {
       state.view = b.dataset.view;
@@ -479,11 +445,6 @@ footer strong { color: var(--text-secondary); }
     }
     return ticks;
   }
-  function median(arr) {
-    var s = arr.slice().sort(function (a, b) { return a - b; });
-    var m = Math.floor(s.length / 2);
-    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-  }
 
   // -------------------------------------------------------------- rendering --
   function renderChart() {
@@ -498,12 +459,11 @@ footer strong { color: var(--text-secondary); }
     svg.setAttribute("height", height);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
-    var mode = Y_MODES[state.y];
     var plotW = width - M.left - M.right;
     var plotH = height - M.top - M.bottom;
 
     var xs = data.map(function (r) { return r.proteinPer100kcal; });
-    var ys = data.map(function (r) { return r[mode.key]; });
+    var ys = data.map(function (r) { return r[Y.key]; });
     var xMax = Math.max.apply(null, xs) * 1.06;
     var yMin = Math.min.apply(null, ys) / 1.25;
     var yMax = Math.max.apply(null, ys) * 1.25;
@@ -528,7 +488,7 @@ footer strong { color: var(--text-secondary); }
     logTicks(yMin, yMax).forEach(function (yv) {
       g.appendChild(el("line", { class: "grid", x1: M.left, x2: M.left + plotW, y1: sy(yv), y2: sy(yv) }));
       var yt = el("text", { class: "axis-text tabular", x: M.left - 10, y: sy(yv) + 4, "text-anchor": "end" });
-      yt.textContent = mode.fmt(yv);
+      yt.textContent = Y.fmt(yv);
       g.appendChild(yt);
     });
 
@@ -540,16 +500,8 @@ footer strong { color: var(--text-secondary); }
       class: "axis-title", "text-anchor": "middle",
       transform: "translate(16," + (M.top + plotH / 2) + ") rotate(-90)"
     });
-    yTitle.textContent = mode.title;
+    yTitle.textContent = Y.title;
     g.appendChild(yTitle);
-
-    // --- median crosshairs --------------------------------------------------
-    var mx = median(xs), my = median(ys);
-    g.appendChild(el("line", { class: "median", x1: sx(mx), x2: sx(mx), y1: M.top, y2: M.top + plotH }));
-    g.appendChild(el("line", { class: "median", x1: M.left, x2: M.left + plotW, y1: sy(my), y2: sy(my) }));
-    var medLabel = el("text", { class: "median-label", x: M.left + plotW - 4, y: sy(my) - 6, "text-anchor": "end" });
-    medLabel.textContent = "median";
-    g.appendChild(medLabel);
 
     // --- points -------------------------------------------------------------
     var pointsG = el("g", {});
@@ -557,7 +509,7 @@ footer strong { color: var(--text-secondary); }
     var placed = [];
 
     data.forEach(function (r) {
-      var cx = sx(r.proteinPer100kcal), cy = sy(r[mode.key]);
+      var cx = sx(r.proteinPer100kcal), cy = sy(r[Y.key]);
       placed.push({ row: r, cx: cx, cy: cy });
 
       var dim = state.query.length > 0 && !matchesQuery(r);
@@ -571,13 +523,13 @@ footer strong { color: var(--text-secondary); }
       });
       c.setAttribute("aria-label",
         r.food.name + ": " + r.proteinPer100kcal.toFixed(1) +
-        " grams protein per 100 calories, " + mode.fmtLong(r[mode.key]));
+        " grams protein per 100 calories, " + Y.fmtLong(r[Y.key]));
       c.addEventListener("focus", function () { showTooltip(r, cx, cy); });
       c.addEventListener("blur", hideTooltip);
       pointsG.appendChild(c);
     });
 
-    geom = { placed: placed, width: width, height: height, mode: mode };
+    geom = { placed: placed, width: width, height: height };
 
     // --- selective direct labels -------------------------------------------
     // Only the extremes plus anything the search matched. A label on every
@@ -586,7 +538,7 @@ footer strong { color: var(--text-secondary); }
     var notable = {};
     if (width >= 640) {
       var byX = data.slice().sort(function (a, b) { return b.proteinPer100kcal - a.proteinPer100kcal; });
-      var byY = data.slice().sort(function (a, b) { return a[mode.key] - b[mode.key]; });
+      var byY = data.slice().sort(function (a, b) { return a[Y.key] - b[Y.key]; });
       if (byX[0]) notable[byX[0].food.id] = true;
       if (byY[0]) notable[byY[0].food.id] = true;
       if (byY[byY.length - 1]) notable[byY[byY.length - 1].food.id] = true;
@@ -614,7 +566,7 @@ footer strong { color: var(--text-secondary); }
   }
 
   function showTooltip(r, cx, cy) {
-    var f = r.food, n = f.per100g, mode = Y_MODES[state.y];
+    var f = r.food, n = f.per100g;
     var servK = n.kcal * f.serving.grams / 100;
     var servP = n.protein * f.serving.grams / 100;
 
@@ -640,7 +592,7 @@ footer strong { color: var(--text-secondary); }
     var lead = document.createElement("div");
     lead.className = "tt-lead";
     [[r.proteinPer100kcal.toFixed(1) + " g", "protein per 100 kcal"],
-     [mode.fmt(r[mode.key]), state.y === "perProtein" ? "per gram of protein" : "per 100 kcal"]
+     [Y.fmt(r[Y.key]), "per gram of protein"]
     ].forEach(function (pair) {
       var box = document.createElement("div");
       var v = document.createElement("div"); v.className = "tt-val"; v.textContent = pair[0];
@@ -662,15 +614,6 @@ footer strong { color: var(--text-secondary); }
       "$" + r.price.package.price.toFixed(2) + " / " + r.price.package.grams + " g"));
     rowsEl.appendChild(row(r.price.store, r.price.date));
     tooltip.appendChild(rowsEl);
-
-    var q = f.quality;
-    var badge = document.createElement("span");
-    badge.className = "tt-badge";
-    var diaas = q.diaas == null ? "DIAAS n/a" : "DIAAS " + q.diaas.toFixed(2);
-    badge.textContent = q.limiting
-      ? diaas + " · limited by " + q.limiting
-      : diaas + " · complete protein";
-    tooltip.appendChild(badge);
 
     if (f.note) {
       var note = document.createElement("div");
@@ -724,8 +667,6 @@ footer strong { color: var(--text-secondary); }
     { key: "carbs",                 label: "Carbs",           get: function (r) { return r.food.per100g.carbs.toFixed(1) + " g"; } },
     { key: "fiber",                 label: "Fiber",           get: function (r) { return r.food.per100g.fiber.toFixed(1) + " g"; } },
     { key: "sodium",                label: "Sodium",          get: function (r) { return Math.round(r.food.per100g.sodium) + " mg"; } },
-    { key: "diaas",                 label: "DIAAS",           get: function (r) { return r.food.quality.diaas == null ? "—" : r.food.quality.diaas.toFixed(2); } },
-    { key: "limiting",              label: "Limiting AA",     get: function (r) { return r.food.quality.limiting || "complete"; } },
     { key: "priceBasis",            label: "Price basis",     get: function (r) { return "$" + r.price.package.price.toFixed(2) + " / " + r.price.package.grams + " g"; } }
   ];
 
@@ -733,8 +674,6 @@ footer strong { color: var(--text-secondary); }
     switch (key) {
       case "name":     return r.food.name.toLowerCase();
       case "category": return CATEGORIES[r.food.category].label.toLowerCase();
-      case "limiting": return r.food.quality.limiting || "";
-      case "diaas":    return r.food.quality.diaas == null ? -1 : r.food.quality.diaas;
       case "priceBasis": return r.dollarsPerGram;
       case "proteinPer100kcal":
       case "dollarsPerGramProtein":
