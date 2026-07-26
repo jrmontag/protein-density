@@ -55,20 +55,24 @@ volume-to-mass for milk, dry-to-cooked yield for lentils.
 ### `data/regions.js` — regional prices
 
 A **Prices from** selector on the page switches the whole chart and table between
-the US average and a growing list of metros (Denver, NYC, San Francisco today).
-Only `data/prices.js` is hand-priced, as the US-average baseline; every region is
-*derived* from it at render time — a per-category multiplier (researched from BLS
-regional CPI, Numbeo, and cost-of-living groceries indices) scales the baseline
-package price, with a few item-level overrides where a better-grounded number was
-available (e.g. reported dozen-egg prices, or a food whose maker is headquartered
-in-region).
+the US average and any regions you've added (Denver ships as an empty example).
+
+Regions are **receipt overrides, not a formula.** There's no per-category
+cost-of-living multiplier scaling the baseline up or down — that sounded plausible
+but mostly just moved a whole category's dots together without changing which
+foods actually win on $/g protein, and it isn't worth maintaining invented numbers
+for cities nobody here shops in. Instead every food starts at the US-average price;
+a region only changes a point once you've recorded a real price for it. An
+un-priced food shows the US average and says so, right in its store label, until
+you add one — so a region is exactly as useful as the receipts behind it, and
+never claims to be more than that.
 
 Switching regions doesn't rebuild the chart — it moves each point's existing dot to
-its new price, so you can watch cost-per-gram shift by market.
+its new price, so you can watch cost-per-gram shift as you fill a region in.
 
-To add a metro: add an entry to `REGIONS`, a full 8-category table to
-`REGION_CATEGORY_MULTIPLIER`, and optionally a few `REGION_ITEM_OVERRIDES`. See the
-comment at the top of the file for the exact shape.
+To add a region: add an entry to `REGIONS` and an (initially empty) array under
+`REGION_PRICES` with the same key. To add a price: append an entry to that array,
+same shape as `prices.js`. Nothing else needs to change.
 
 ### `data/foods.js` — nutrition
 

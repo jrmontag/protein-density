@@ -272,13 +272,11 @@ footer strong { color: var(--text-secondary); }
   <p>
     <strong>Prices are estimates, not observed prices.</strong> The US average is a
     plausible blend of metro and rural supermarket figures seeded so the chart works
-    out of the box, dated <span id="price-range"></span>. Denver, NYC, and San
-    Francisco are derived from that baseline using regional grocery cost
-    differentials researched from BLS regional CPI, Numbeo, and cost-of-living
-    groceries indices, applied per food category — not priced item by item. Grocery
-    prices vary by region, chain, and week regardless — edit
-    <code>data/prices.js</code> with numbers off your own receipts and this becomes
-    genuinely yours.
+    out of the box, dated <span id="price-range"></span>. Other regions are real
+    receipts, not adjusted estimates — a food you haven't priced there simply shows
+    the US average, labeled as such, until you add one. Edit <code>data/prices.js</code>
+    (the baseline) or <code>data/regions.js</code> (a region) with numbers off your own
+    receipts and this becomes genuinely yours.
   </p>
   <p>
     Nutrition comes from USDA FoodData Central and manufacturer labels; brand items vary.
@@ -298,8 +296,7 @@ footer strong { color: var(--text-secondary); }
   var FOODS = window.FOODS, PRICES = window.PRICES;
   var CATEGORIES = window.CATEGORIES, GROUPS = window.GROUPS;
   var REGIONS = window.REGIONS;
-  var REGION_CATEGORY_MULTIPLIER = window.REGION_CATEGORY_MULTIPLIER;
-  var REGION_ITEM_OVERRIDES = window.REGION_ITEM_OVERRIDES;
+  var REGION_PRICES = window.REGION_PRICES;
 
   var GROUP_VAR = {
     plant: "--series-plant",
@@ -314,45 +311,35 @@ footer strong { color: var(--text-secondary); }
   // Every metric the chart plots is computed here from the data files, so the
   // data files never store anything that can drift out of sync.
   //
-  // Regions are layered on top of the US-average baseline in `prices.js`: for
-  // every food, a per-category multiplier (or an item-level override) scales
-  // the baseline package price into a regional one. See `data/regions.js` for
-  // the research and reasoning behind the numbers.
-  function regionPriceFor(basePrice, region) {
-    if (region.key === "us-avg") return basePrice;
-    var overrides = (REGION_ITEM_OVERRIDES[region.key] || {})[basePrice.id];
-    var price;
-    if (overrides && typeof overrides.price === "number") {
-      price = overrides.price;
-    } else {
-      var category = FOODS_BY_ID[basePrice.id].category;
-      var mult = (overrides && overrides.multiplier) ||
-                 REGION_CATEGORY_MULTIPLIER[region.key][category];
-      price = Math.round(basePrice.package.price * mult / 0.05) * 0.05;
-      price = Math.round(price * 100) / 100;
-    }
-    var unitNote = basePrice.unitNote + (overrides && overrides.note ? (basePrice.unitNote ? " " : "") + overrides.note : "");
+  // A region is a set of price OVERRIDES, not a formula. Every food starts at
+  // its US-average price; a region only changes a food's point once you've
+  // recorded a real price for it in `data/regions.js`. Nothing is scaled or
+  // estimated — an un-priced food in "Denver" is just showing the US average,
+  // and says so via its store label, until you add the real number.
+  function regionPriceFor(basePrice, region, overridesById) {
+    var override = overridesById[basePrice.id];
+    if (override) return override;
     return {
       id: basePrice.id,
-      store: region.store,
-      date: region.date,
-      package: { grams: basePrice.package.grams, price: price },
-      unitNote: unitNote
+      store: "US average — not yet priced in " + region.label,
+      date: basePrice.date,
+      package: basePrice.package,
+      unitNote: basePrice.unitNote
     };
   }
-
-  var FOODS_BY_ID = {};
-  FOODS.forEach(function (f) { FOODS_BY_ID[f.id] = f; });
 
   var basePriceById = {};
   PRICES.forEach(function (p) { basePriceById[p.id] = p; });
 
   function buildRows(region) {
+    var overridesById = {};
+    (REGION_PRICES[region.key] || []).forEach(function (p) { overridesById[p.id] = p; });
+
     var out = [];
     FOODS.forEach(function (f) {
       var base = basePriceById[f.id];
       if (!base) return;
-      var p = regionPriceFor(base, region);
+      var p = region.key === "us-avg" ? base : regionPriceFor(base, region, overridesById);
       var n = f.per100g;
       var dollarsPerGram = p.package.price / p.package.grams;
       out.push({
@@ -401,6 +388,16 @@ footer strong { color: var(--text-secondary); }
       priceSeen[p.id] = true;
       if (!seen[p.id]) problems.push("price with no matching food: " + p.id);
       if (!(p.package.grams > 0) || !(p.package.price > 0)) problems.push("bad package on price: " + p.id);
+    });
+    REGIONS.forEach(function (region) {
+      if (region.key === "us-avg") return;
+      var overrideSeen = {};
+      (REGION_PRICES[region.key] || []).forEach(function (p) {
+        if (overrideSeen[p.id]) problems.push("duplicate " + region.key + " price override: " + p.id);
+        overrideSeen[p.id] = true;
+        if (!seen[p.id]) problems.push(region.key + " price override with no matching food: " + p.id);
+        if (!(p.package.grams > 0) || !(p.package.price > 0)) problems.push("bad package on " + region.key + " override: " + p.id);
+      });
     });
     if (problems.length) {
       console.warn("Protein chart — " + problems.length + " data issue(s):");
@@ -493,7 +490,15 @@ footer strong { color: var(--text-secondary); }
   regionSelect.value = state.region;
 
   function updateRegionNote() {
-    regionNoteEl.textContent = REGIONS_BY_KEY[state.region].methodNote;
+    var region = REGIONS_BY_KEY[state.region];
+    if (region.key === "us-avg") {
+      regionNoteEl.textContent = "The baseline estimate: a blend of metro and rural supermarket prices nationwide.";
+      return;
+    }
+    var priced = (REGION_PRICES[region.key] || []).length;
+    regionNoteEl.textContent = priced === 0
+      ? "No " + region.label + " prices recorded yet — every point is showing the US average. Add real prices to data/regions.js as you shop."
+      : priced + " of " + FOODS.length + " foods priced from real " + region.label + " receipts; the rest follow the US average until you add them.";
   }
 
   regionSelect.addEventListener("change", function (e) {
