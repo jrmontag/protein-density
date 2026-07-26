@@ -6,7 +6,7 @@ calorie budget.
 - **Horizontal axis — protein density**, grams of protein per 100 kcal. This is
   "how much of my calorie budget does this protein cost me." Further right is better.
 - **Vertical axis — cost**, dollars per gram of protein, on a log scale. Lower is
-  better. A toggle switches it to dollars per 100 kcal.
+  better.
 
 The bottom-right corner is cheap protein that barely touches your calorie budget.
 
@@ -22,21 +22,14 @@ delivers before it fills that budget up.
 Cost is deliberately *not* dollars per calorie. That metric rewards cheap calories —
 olive oil would score brilliantly — which is backwards for someone trying to add
 protein without adding calories. Dollars per gram of protein answers the question you
-are actually asking at the shelf. The two are related (`$/g protein = ($/kcal) ÷
-(g protein/kcal)`), so the per-calorie view is still one click away.
+are actually asking at the shelf.
 
 ## Reading it honestly
 
-Two traps the chart will happily walk you into if you only read the axes:
-
-- **Protein quality.** Vital wheat gluten and seitan sit in the best corner of the
-  chart and have a DIAAS around 0.25 — wheat protein is severely lysine-limited, so
-  your body can use far less of it than the gram count implies. Rice protein has the
-  same problem. Hover any point for its DIAAS and limiting amino acid. Below about
-  0.75, treat the position as optimistic.
-- **What rides along.** Cheddar and peanut butter look reasonable on protein density
-  but bring a lot of saturated fat; parmesan's sodium is extreme at any real portion.
-  The tooltip and the table carry the full macro breakdown.
+The axes are about protein and price, so they say nothing about what rides along with
+them. Cheddar and peanut butter look reasonable on protein density but bring a lot of
+saturated fat; parmesan's sodium is extreme at any real portion. Hover any point, or
+open the table view, for the full macro breakdown.
 
 ## Editing the data
 
@@ -70,7 +63,6 @@ a food, add an entry here and a matching `id` in `data/prices.js`:
   serving: { grams: 85, label: "3 oz (85 g)" },
   per100g: { kcal: 144, protein: 17.3, fat: 8.7, satFat: 1.3,
              carbs: 2.8, fiber: 2.3, sugar: 0.6, sodium: 14 },
-  quality: { diaas: 0.87, limiting: null },   // limiting: "lysine" if incomplete
   note: ""
 }
 ```
@@ -95,7 +87,7 @@ carry meaning through color. **Don't add a fourth series color** without re-vali
 
 Lacto-ovo vegetarian: no meat, poultry, fish, or gelatin. Collagen peptides are
 deliberately excluded — bovine- and marine-derived, so out of scope here even though
-they're marketed alongside these products (and they're an incomplete protein anyway).
+they're marketed alongside these products.
 
 Nutrition figures come from USDA FoodData Central and manufacturer labels. Brand
 items vary; treat them as typical rather than exact.
