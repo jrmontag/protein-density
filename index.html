@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Protein sources: density vs. cost</title>
-<meta name="description" content="An interactive comparison of vegetarian protein sources by protein per calorie and cost per gram of protein.">
+<title>Where Do Vegetarians Get Protein? A Density &amp; Cost Explorer</title>
+<meta name="description" content="An interactive guide to vegetarian protein sources — soy, legumes, nuts, dairy, eggs, and protein powders — compared by protein density and cost per gram of protein.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='9' cy='22' r='4' fill='%232a78d6'/%3E%3Ccircle cx='17' cy='14' r='4' fill='%23eb6834'/%3E%3Ccircle cx='25' cy='8' r='4' fill='%231baf7a'/%3E%3C/svg%3E">
 <style>
 /* ------------------------------------------------------------------ tokens --
@@ -87,15 +87,13 @@ h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em
   font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--text-muted); font-weight: 600;
 }
-.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.segmented button {
-  appearance: none; border: 0; background: var(--surface-1);
-  color: var(--text-secondary); font: inherit; font-size: 13px;
-  padding: 6px 12px; cursor: pointer;
+.examples { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.example-chip {
+  appearance: none; font: inherit; font-size: 12.5px; padding: 4px 11px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-1); color: var(--text-secondary); cursor: pointer;
 }
-.segmented button + button { border-left: 1px solid var(--border); }
-.segmented button:hover { background: var(--hover-wash); }
-.segmented button[aria-pressed="true"] { background: var(--text-primary); color: var(--surface-1); }
+.example-chip:hover { background: var(--hover-wash); }
 
 input[type="search"] {
   appearance: none; font: inherit; font-size: 13px;
@@ -168,9 +166,9 @@ input[type="search"]::placeholder { color: var(--text-muted); }
 .tt-note { font-size: 11.5px; color: var(--text-secondary); margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); }
 
 /* ------------------------------------------------------------------- table */
-#table-view { display: none; }
-#table-view.on { display: block; }
-#chart-view.off { display: none; }
+#table-view { margin-top: 32px; }
+.table-heading { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+.table-intro { color: var(--text-secondary); font-size: 13px; margin: 0 0 12px; }
 .table-scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
 th, td { text-align: right; padding: 6px 8px; white-space: nowrap; border-bottom: 1px solid var(--border); }
@@ -199,25 +197,27 @@ footer strong { color: var(--text-secondary); }
 <div class="wrap">
 
 <header>
-  <h1>Protein sources: density vs. cost</h1>
+  <h1>Where Do Vegetarians Get Protein?</h1>
   <p class="sub">
-    Every food is normalized per calorie, so they are directly comparable within a fixed
-    calorie budget. Further right means more protein for the same calories. Lower means
-    cheaper protein. The bottom-right corner is where you want to shop.
+    If you don't eat meat, poultry, or fish, it's easy to assume protein is scarce.
+    It isn't — this chart plots <strong><span id="food-count"></span> vegetarian foods</strong>,
+    from tofu and lentils to Greek yogurt, eggs, nuts, and protein powders, so you can see the
+    variety at a glance. Every food is normalized per calorie: further right means more protein for the
+    same calories, and lower means cheaper protein per gram — the bottom-right corner is
+    where you want to shop. Hover or tap a dot for full nutrition details, click a legend
+    chip below to filter by category, or search for a food by name. The same data is also in
+    a sortable table further down the page.
   </p>
 </header>
 
 <div class="controls">
   <div class="control-group">
-    <span class="control-label" id="lbl-view">View</span>
-    <div class="segmented" role="group" aria-labelledby="lbl-view">
-      <button type="button" data-view="chart" aria-pressed="true">Chart</button>
-      <button type="button" data-view="table" aria-pressed="false">Table</button>
-    </div>
-  </div>
-  <div class="control-group">
     <label class="visually-hidden" for="search">Highlight a food by name</label>
     <input type="search" id="search" placeholder="Highlight a food…" autocomplete="off">
+  </div>
+  <div class="control-group">
+    <span class="control-label">Try</span>
+    <div class="examples" id="examples"></div>
   </div>
 </div>
 
@@ -230,14 +230,16 @@ footer strong { color: var(--text-secondary); }
     <title id="chart-title">Protein density versus cost for vegetarian protein sources</title>
     <p id="chart-desc" class="visually-hidden">
       Scatter plot. Horizontal axis is grams of protein per 100 calories. Vertical axis is
-      cost per gram of protein on a logarithmic scale. Switch to the table view for the
-      same data as text.
+      cost per gram of protein on a logarithmic scale. The same data appears as text in the
+      table below the chart.
     </p>
     <div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
   </div>
 </div>
 
 <div id="table-view">
+  <h2 class="table-heading">All foods</h2>
+  <p class="table-intro">Every food in the chart above, as a sortable table. Click a column header to sort by it.</p>
   <div class="card">
     <div class="table-scroll">
       <table id="table">
@@ -343,12 +345,16 @@ footer strong { color: var(--text-secondary); }
 
   // ----------------------------------------------------------------- state --
   var state = {
-    view: "chart",
     hidden: {},
     query: "",
     sortKey: "dollarsPerGramProtein",
     sortDir: 1
   };
+
+  // Labeled on load without any search or hover, so a first-time visitor sees
+  // named examples spread across the chart's full range rather than a wall of
+  // unlabeled dots. Chosen to span categories: soy, legume, nut, supplement.
+  var DEFAULT_LABEL_IDS = { "tofu-firm": true, "hummus": true, "whey-isolate": true, "almonds": true };
 
   // The single cost metric the chart plots.
   var Y = {
@@ -406,20 +412,26 @@ footer strong { color: var(--text-secondary); }
   });
 
   // -------------------------------------------------------------- controls --
-  document.querySelectorAll("[data-view]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      state.view = b.dataset.view;
-      document.querySelectorAll("[data-view]").forEach(function (o) {
-        o.setAttribute("aria-pressed", o === b ? "true" : "false");
-      });
-      document.getElementById("chart-view").classList.toggle("off", state.view !== "chart");
-      document.getElementById("table-view").classList.toggle("on", state.view === "table");
-      render();
-    });
-  });
-  document.getElementById("search").addEventListener("input", function (e) {
+  var searchInput = document.getElementById("search");
+  searchInput.addEventListener("input", function (e) {
     state.query = e.target.value.trim().toLowerCase();
     render();
+  });
+
+  // ----------------------------------------------------------- examples ui --
+  var EXAMPLE_SEARCHES = ["tofu", "yogurt"];
+  var examplesEl = document.getElementById("examples");
+  EXAMPLE_SEARCHES.forEach(function (term) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "example-chip";
+    b.textContent = term;
+    b.addEventListener("click", function () {
+      searchInput.value = term;
+      state.query = term.toLowerCase();
+      render();
+    });
+    examplesEl.appendChild(b);
   });
 
   // ----------------------------------------------------------------- scale --
@@ -532,16 +544,13 @@ footer strong { color: var(--text-secondary); }
     geom = { placed: placed, width: width, height: height };
 
     // --- selective direct labels -------------------------------------------
-    // Only the extremes plus anything the search matched. A label on every
-    // point would be unreadable at this density, and below ~640px even three
-    // labels collide with the marks, so there the tooltip carries them instead.
+    // A fixed set of examples (spread across categories) plus anything the
+    // search matched. A label on every point would be unreadable at this
+    // density, and below ~480px even a few labels collide with the marks, so
+    // there the tooltip carries them instead.
     var notable = {};
-    if (width >= 640) {
-      var byX = data.slice().sort(function (a, b) { return b.proteinPer100kcal - a.proteinPer100kcal; });
-      var byY = data.slice().sort(function (a, b) { return a[Y.key] - b[Y.key]; });
-      if (byX[0]) notable[byX[0].food.id] = true;
-      if (byY[0]) notable[byY[0].food.id] = true;
-      if (byY[byY.length - 1]) notable[byY[byY.length - 1].food.id] = true;
+    if (width >= 480) {
+      for (var id in DEFAULT_LABEL_IDS) notable[id] = true;
     }
 
     placed.forEach(function (p) {
@@ -733,9 +742,11 @@ footer strong { color: var(--text-secondary); }
 
   // ----------------------------------------------------------------- render --
   function render() {
-    if (state.view === "chart") renderChart();
-    else renderTable();
+    renderChart();
+    renderTable();
   }
+
+  document.getElementById("food-count").textContent = rows.length;
 
   (function priceRange() {
     var dates = PRICES.map(function (p) { return p.date; }).sort();
@@ -746,7 +757,7 @@ footer strong { color: var(--text-secondary); }
   var resizeTimer = null;
   window.addEventListener("resize", function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { if (state.view === "chart") renderChart(); }, 120);
+    resizeTimer = setTimeout(renderChart, 120);
   });
 
   render();
