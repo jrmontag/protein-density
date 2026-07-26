@@ -1,0 +1,68 @@
+id,category,package_grams,price_usd,confidence,source_note
+tofu-firm,soy,396,2.69,High,Walmart (Azumaya $2.22/16oz basic; Nasoya organic $2.92/14oz) blended
+tofu-extra-firm,soy,396,2.89,High,Walmart (Nasoya extra-firm organic 14oz $2.92) blended w/ basic tier
+tofu-silken,soy,340,2.49,Medium,"Category estimate (Mori-Nu shelf-stable silken, typical $2.29-2.69/12oz)"
+tempeh,soy,227,3.69,Medium,"Category estimate, Lightlife dominant brand, typical $3.49-3.99/8oz"
+edamame,soy,396,3.29,Medium,"Category estimate, frozen shelled edamame 12-16oz typical range"
+tvp,soy,340,4.99,Medium,"Category estimate, specialty/bulk aisle item (Bob's Red Mill-style)"
+soy-milk,soy,1892,3.99,Medium,"Category estimate, Silk/store-brand unsweetened half gallon"
+soy-curls,soy,227,6.99,Low,"Category estimate, niche specialty item (Butler Soy Curls)"
+lentils-cooked,legume,1090,2.49,High,Walmart dry lentil bag (store+name blend) ~$2.29-2.69/lb
+lentils-dry,legume,454,2.49,High,Walmart dry lentil bag (store+name blend) ~$2.29-2.69/lb
+chickpeas-canned,legume,240,1.29,High,"Walmart: Great Value $0.86, Bush's $1.37, Goya $1.58 (avg ~$1.27)"
+chickpeas-dry,legume,454,2.09,High,Walmart: Great Value $1.46/lb blended with name-brand ~$2.49-2.99/lb
+black-beans-canned,legume,240,1.19,High,Walmart: Great Value $0.86 blended with name-brand ~$1.38-1.58
+kidney-beans-canned,legume,240,1.19,High,Walmart: Great Value $0.86 blended with name-brand ~$1.38-1.58
+split-peas-dry,legume,454,2.19,Medium,"Category estimate, similar tier to dry lentils"
+hummus,legume,283,3.79,Medium,"Category estimate, Sabra (dominant brand) + store-brand blend, 10oz tub"
+chickpea-pasta,legume,227,3.49,Medium,"Category estimate, Banza (dominant brand) 8oz box, frequent-sale-adjusted"
+red-lentil-pasta,legume,227,3.29,Medium,"Category estimate, Banza/Tolerant red lentil pasta 8oz box"
+milk-skim,dairy,3785,4.09,High,"BLS APU0000709112 whole-milk anchor $4.22-4.32/gal, skim priced slightly below whole"
+milk-2pct,dairy,3785,4.19,High,"BLS whole-milk anchor, 2% priced between skim and whole"
+milk-whole,dairy,3785,4.29,High,BLS APU0000709112: $4.22/gal (May26) -> $4.32/gal (Jun26); +rural/blend adj.
+greek-yogurt-0,dairy,907,4.59,High,"Walmart 32oz tubs: Great Value $2.94, Chobani $5.37, Oikos $6.27 (blended)"
+greek-yogurt-2,dairy,907,4.69,Medium,Interpolated between 0% and whole-milk tiers; Chobani 2% protein line $6.77
+greek-yogurt-5,dairy,907,4.79,High,"Walmart 32oz whole-milk tubs: bettergoods $3.53, Stonyfield Organic $5.17"
+skyr,dairy,680,6.99,High,Target: Siggi's plain 24oz $6.99 (category-dominant brand)
+cottage-cheese-2,dairy,680,3.59,High,"Walmart 24oz tubs: Great Value $2.87, Daisy $4.36 (blended)"
+cottage-cheese-1,dairy,680,3.49,High,"Walmart 24oz tubs: Great Value $2.87, Daisy $4.36 (blended)"
+kefir,dairy,946,3.79,High,Walmart: Lifeway (category-dominant brand) 32oz $3.66 + rural/blend adj.
+cheddar,dairy,227,3.79,High,"BLS $5.96/lb (all-forms avg) blended w/ block-format brands (Cabot/Tillamook ~$4-5, GV cubed $1.97-2.37)"
+mozzarella,dairy,227,2.99,High,Walmart: Great Value block/shredded $1.87-1.97 blended w/ Galbani/BelGioioso $3.49-4.46
+parmesan,dairy,170,5.49,High,"Walmart: BelGioioso wedge $5.42/8oz scaled to 6oz, blended w/ cheaper grated options"
+ricotta,dairy,425,3.49,High,Walmart 15oz tubs: Great Value $2.67 blended w/ Galbani/Polly-O ~$3.99-4.99
+string-cheese,dairy,336,4.29,High,Walmart 12oz/12ct: Great Value $3.28 blended w/ Sargento/Frigo ~$4.49-5.49
+eggs-whole,egg,600,2.99,High,"BLS APU0000708111 $2.14-2.19/doz (conventional) blended up for cage-free/brown share of market (WIC LA data: brown $3.62, cage-free $3.55)"
+egg-whites,egg,396,2.99,High,Same basis as eggs-whole (you buy the whole dozen)
+egg-whites-carton,egg,946,5.49,Medium,"Category estimate, liquid egg whites (Egg Beaters/store-brand) 32oz carton"
+peanut-butter,nut-seed,454,2.99,High,Walmart 16oz: Great Value tier ~$2.28-2.68 blended w/ Jif/Skippy ~$3.28-3.98
+almonds,nut-seed,454,6.99,Medium,"Category estimate, 16oz bag, store-brand ~$5.98-6.98 blended w/ Blue Diamond ~$7.98-8.98"
+almond-butter,nut-seed,454,8.99,Medium,"Category estimate, 16oz jar, mainstream brands (MaraNatha/Justin's) $7.99-10.99"
+pumpkin-seeds,nut-seed,340,6.49,Medium,"Category estimate, 12oz raw pepitas"
+hemp-hearts,nut-seed,454,12.99,Medium,"Category estimate, Manitoba Harvest (dominant brand) 16oz"
+chia,nut-seed,454,6.49,Medium,"Category estimate, 16oz bag"
+sunflower-seeds,nut-seed,454,3.99,Medium,"Category estimate, 16oz shelled kernels"
+tahini,nut-seed,454,7.99,Low,"Category estimate, 16oz jar specialty item"
+oats,grain,1130,3.99,High,"Walmart-style: Quaker ~$4.48-5.48 blended w/ Great Value ~$2.98-3.48, 42oz canister"
+quinoa-cooked,grain,1362,4.99,Medium,"Category estimate, 16oz dry bag, store+name blend"
+whole-wheat-bread,grain,680,3.49,High,BLS white-bread anchor $1.81-1.83/lb scaled + WW premium; store+name blend
+high-protein-bread,grain,765,6.99,High,"Walmart: Dave's Killer Bread $5.78/20.5oz scaled to 27oz (~$7.62), blended down slightly for cheaper high-protein lines"
+seitan,grain,227,4.99,Medium,"Category estimate, prepared seitan (Upton's Naturals), niche/specialty"
+vital-wheat-gluten,grain,624,7.49,Medium,"Category estimate, Bob's Red Mill (dominant brand) 22-23oz bag"
+whole-wheat-pasta,grain,454,2.09,High,Walmart 16oz: Great Value ~$1.24-1.48 blended w/ Barilla ~$2.28-2.68
+whey-concentrate,supplement,2270,54.99,High,Walmart/retail: Optimum Nutrition $82.99-96.28 (premium) blended w/ budget blends (Body Fortress/BSN) ~$35-50
+whey-isolate,supplement,1360,54.99,High,"Category estimate: ON Isolate ~$55-65 blended w/ budget isolates ~$40-55, 3lb"
+casein,supplement,1810,59.99,Medium,"Category estimate: ON Casein ~$55-65 blended w/ budget options ~$40-50, 4lb"
+pea-protein,supplement,907,24.99,Medium,Category estimate: NOW/Naked Pea 2lb $24.99-34.99
+soy-protein-isolate,supplement,907,19.99,Medium,Category estimate: NOW Soy Protein Isolate 2lb $19.99-26.99
+rice-protein,supplement,907,22.99,Medium,Category estimate: NOW/Growing Naturals Rice Protein 2lb $22.99-29.99
+quest-bar,packaged,720,27.99,High,Walmart: Quest 4-count $8.88-9.47 scaled to 12-count ($26.64-28.41)
+rxbar,packaged,624,23.99,High,Walmart: RXBAR 5-count $8.96-10.99 scaled to 12-count ($21.50-26.38)
+clif-builders,packaged,816,20.99,High,Walmart: Clif Builders 6-count $9.98 scaled to 12-count (~$19.96)
+protein-chips,packaged,256,16.99,Medium,"Category estimate, Quest protein chips 8-pack"
+core-power,packaged,4968,29.99,High,Walmart: standard Core Power 12-pack ~$29.97 observed
+premier-protein,packaged,3900,23.99,High,"Walmart: Premier Protein 12-pack (11oz), typical retail $21.98-24.99"
+orgain-shake,packaged,3960,32.99,Medium,"Category estimate, Orgain 12-pack (11oz) organic plant protein shake"
+beyond-burger,packaged,226,5.49,High,Walmart/Vons: Beyond Burger 6pk $13.47 (=$4.49/2patty bulk); standalone 2-pack ~$5.49-6.49
+impossible-burger,packaged,226,5.99,High,Walmart/Vons: Impossible 6pk $13.48 (=$4.49/2patty bulk); standalone 2-pack ~$4.99-6.99
+boca-patty,packaged,284,3.49,High,Walmart: BOCA All American Veggie Burgers 4ct/10oz = $3.46 (package size matches exactly)

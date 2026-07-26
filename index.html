@@ -250,11 +250,13 @@ footer strong { color: var(--text-secondary); }
 
 <footer>
   <p>
-    <strong>Prices are estimates, not observed prices.</strong> They are plausible US
-    supermarket figures seeded so the chart works out of the box, dated
-    <span id="price-range"></span>. Grocery prices vary by region, chain, and week —
-    edit <code>data/prices.js</code> with numbers off your own receipts and this becomes
-    genuinely yours.
+    <strong>Prices are estimates, not observed prices.</strong> They are blended from BLS/USDA
+    price series, direct retailer listings, and category-level estimates, dated
+    <span id="price-range"></span> — see the
+    <a href="docs/pricing/PRICE_METHODOLOGY.md">pricing methodology and sourcing notes</a>
+    for how each figure was built and its confidence level. Grocery prices vary by region,
+    chain, and week — edit <code>data/prices.js</code> with numbers off your own receipts
+    and this becomes genuinely yours.
   </p>
   <p>
     Nutrition comes from USDA FoodData Central and manufacturer labels; brand items vary.
